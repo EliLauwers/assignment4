@@ -1,0 +1,1 @@
+echo -e "SELECT * FROM purpose" | java -jar rulebox.jar explore stats --d clinicaltrials.json

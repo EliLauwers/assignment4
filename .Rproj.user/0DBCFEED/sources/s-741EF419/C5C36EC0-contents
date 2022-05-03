@@ -1,0 +1,10 @@
+{
+  "vendor": "POSTGRESQL",
+  "host": "ddcmstud.ugent.be",
+  "port": "8088",
+  "user": "sql_exerciser",
+  "password": "7UCVuJeLCGcQbk2M",
+  "database": "clinicaltrials",
+  "schema": "public",
+  "encoding": "UTF-8"
+}

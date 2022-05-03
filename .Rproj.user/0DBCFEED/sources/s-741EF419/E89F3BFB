@@ -1,0 +1,31 @@
+{
+    "id": "E89F3BFB",
+    "path": "~/school/databases/assignment4/output_assignment4.Rmd",
+    "project_path": "output_assignment4.Rmd",
+    "type": "r_markdown",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1651515633825.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "tempName": "Untitled2",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "119,94",
+        "scrollLine": "109",
+        "working_dir": "project",
+        "last_setup_crc32": "741EF41969ef277b",
+        "chunk_output_type": "inline",
+        "docOutlineVisible": "1"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1651583774,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1651583774471,
+    "read_only": false,
+    "read_only_alternatives": []
+}
