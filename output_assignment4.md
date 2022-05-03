@@ -17,7 +17,7 @@ the data in the `purpose` table (so not the example data given in Table
 **Answer**: There are 1511 rows in the `purpose` table
 
 ``` bash
-echo -e "SELECT * FROM purpose" | java -jar rulebox.jar explore stats --d clinicaltrials.json
+echo -e "SELECT * FROM purpose" | java -jar rulebox.jar explore stats --d ctgov_drks.json
 ```
 
     ## Reading data...
@@ -69,7 +69,7 @@ echo -e "SELECT * FROM purpose" | java -jar rulebox.jar explore stats --d clinic
 
 ``` bash
 echo -e "SELECT * FROM purpose WHERE ctgov_study_type = 'Interventional' AND drks_study_type = 'Interventional'" | 
-java -jar rulebox.jar explore stats --d clinicaltrials.json
+java -jar rulebox.jar explore stats --d ctgov_drks.json
 ```
 
     ## Reading data...
@@ -122,7 +122,7 @@ java -jar rulebox.jar explore stats --d clinicaltrials.json
 
 ``` bash
 echo -e "SELECT * FROM purpose WHERE ctgov_purpose ilike drks_purpose AND ctgov_purpose IS NOT null" | 
-java -jar rulebox.jar explore stats --d clinicaltrials.json
+java -jar rulebox.jar explore stats --d ctgov_drks.json
 ```
 
     ## Reading data...
@@ -228,7 +228,7 @@ ORDER BY sum_of_nulls asc
 
 ``` bash
 echo -e "SELECT * FROM purpose" |
-java -jar rulebox.jar explore stats --d clinicaltrials.json
+java -jar rulebox.jar explore stats --d ctgov_drks.json
 ```
 
     ## Reading data...
@@ -310,10 +310,10 @@ Provide answers to the following exercises in your report.
 
 <!-- -->
 
-1.  E1
-2.  E5
-3.  E14
-4.  E17
+1.  E1: {`stni`, `cp`}
+2.  E5: {`cp`, `dp`}
+3.  E14: {`dst`, `stni`}
+4.  E17: {`stni`, `om`}
 
 <!-- -->
 
@@ -322,6 +322,295 @@ Provide answers to the following exercises in your report.
 
 <!-- -->
 
-1.  {stni}
-2.  {cp,dp}
-3.  {dst,om}
+1.  {stni}: E1, E2, E12, E13, E14, E15, E16, E17
+2.  {cp,dp}: E3, E4, E5, E6, E7, E8, E9, 10, E11
+3.  {dst,om}: None (empty set)
+
+# 3.Redundancy
+
+Provide answers to the following exercises in your report.
+
+1.  Construct an edit rule Er that is redundant to E2 and in which
+    exactly 4 attributes are involved.
+
+**Answer**: (**NOT SURE**): stni:{Epidemiological study, Observational
+study, Other} x dp:{Treatment} x cst: {Interventional} x
+dst:{Interventional}
+
+2.  Is it possible to construct an edit rule Er that is redundant to E14
+    in which attribute stni is not involved? Why (not)?
+
+**Answer**: (**NOT SURE**) Not possible, an edit rule Er can only be
+redundant to E14 if Er is a subset of E14. If we try to lose attribute
+`stni`, than Er can never be fully contained in E14.
+
+# 4. Error detection
+
+Provide solutions to the following error detection exercises related to
+the example data (Table 1) in your report.
+
+1.  List, for each row given in Table 1, which edit rules in E are
+    failed by the corresponding row.
+
+| Row Index | failed edit rules |
+|-----------|-------------------|
+| 1         | E1, E3, E16       |
+| 2         | E16               |
+| 3         | None              |
+| 4         | E5, E12, E17      |
+
+2.  Is it possible to give an example row that fails both edit rules E5
+    and E8, but no additional ones. If so, give such an example row. If
+    not, explain why.
+
+**Answer**: Not possible. To fail both E5 and E8, an example row should
+have a `dp` value of both ‘Diagnostic’ and ‘Health Care System’ at the
+same time, as otherwise edit rules E5 and E8 can never be failed at the
+same time. This is not possible, as the `dp` attribute always takes on
+only one value at a time, so to construct such an example row is not
+possible.
+
+3.  Is it possible to give an example row that fails both edit rules E13
+    and E15, but no additional ones. If so, give such an example row. If
+    not, explain why.
+    `**Answer**:`cst`: {Observational},`dst`:{Non-Interventional},`stni\`:{N/A} +
+    any combination of the other attributes
+
+Provide solutions to the following error detection exercises related to
+the data in the purpose table (so not the example data) in your report.
+For this, we ask to create a .rbx file containing all the given edit
+rules defined on the data first. Add this .rbx file to the final .zip
+file.
+
+4.  Get the total number of rows failing at least one edit rule.
+
+**Answer**: There are 40 such rows
+
+``` bash
+echo -e "SELECT * FROM purpose" |
+java -jar rulebox.jar errors detect rows --d ctgov_drks.json --c purpose_rules.rbx
+```
+
+    ## Reading constraints
+    ## Constraint file does not exist.
+
+5.  Get the total number of rows failing edit rule E11.
+
+**Answer**: There are 3 such rows
+
+``` sql
+SELECT *
+FROM purpose
+WHERE (
+  ctgov_purpose = 'Basic Science' 
+  OR ctgov_purpose = 'Diagnostic'
+  OR ctgov_purpose = 'Health Services Research'
+  OR ctgov_purpose = 'Other'
+  OR ctgov_purpose ='Supportive Care'
+  OR ctgov_purpose ='Screening'
+  OR ctgov_purpose ='Treatment'
+  ) AND drks_purpose = 'Prevention'
+```
+
+<div class="knitsql-table">
+
+| ctgov\_study\_type | drks\_study\_type | study\_type\_non\_interventional | observational\_model | ctgov\_purpose | drks\_purpose |
+|:-------------------|:------------------|:---------------------------------|:---------------------|:---------------|:--------------|
+| Interventional     | Interventional    | N/A                              | N/A                  | Treatment      | Prevention    |
+| Interventional     | Interventional    | N/A                              | N/A                  | Treatment      | Prevention    |
+| Interventional     | Interventional    | N/A                              | N/A                  | Treatment      | Prevention    |
+
+3 records
+
+</div>
+
+``` bash
+echo -e "SELECT * FROM purpose" |
+java -jar rulebox.jar errors detect rows --d ctgov_drks.json --c edit_rules_E11.rbx
+```
+
+    ## Reading constraints
+    ## Reading data...
+    ## SQL query:
+    ## 
+    ## Invalid rows (at least one error): 5
+    ## 
+    ## Histogram for sigma rule failures
+    ## 
+    ##  Bin 1: 0 -> 1507
+    ##  Bin 2: 1 -> 5
+    ##  Bin 3: 2 -> 0
+    ##  Bin 4: 3 -> 0
+    ##  Bin 5: 4 -> 0
+    ##  Bin 6: 5 -> 0
+    ##  Bin 7: 6 -> 0
+    ##  Bin 8: 7 -> 0
+
+6.  Get the total number of rows failing edit rules E1 and E17.
+
+**Answer**: 0 rows fail both E1 and E17
+
+``` sql
+SELECT *
+FROM purpose
+WHERE 
+    (study_type_non_interventional = 'Epidemiological study'
+     OR study_type_non_interventional = 'Observational study'
+     OR study_type_non_interventional = 'Other'
+    )
+    AND observational_model = 'N/A'
+    AND ctgov_purpose = 'Treatment'
+```
+
+<div class="knitsql-table">
+
+| ctgov\_study\_type | drks\_study\_type | study\_type\_non\_interventional | observational\_model | ctgov\_purpose | drks\_purpose |
+|:-------------------|:------------------|:---------------------------------|:---------------------|:---------------|:--------------|
+
+0 records
+
+</div>
+
+``` bash
+echo -e "SELECT * FROM purpose" |
+java -jar rulebox.jar errors detect rows --d ctgov_drks.json --c edit_rules_E1_E17.rbx
+```
+
+    ## Reading constraints
+    ## Reading data...
+    ## SQL query:
+    ## 
+    ## Invalid rows (at least one error): 3
+    ## 
+    ## Histogram for sigma rule failures
+    ## 
+    ##  Bin 1: 0 -> 1509
+    ##  Bin 2: 1 -> 3
+    ##  Bin 3: 2 -> 0
+    ##  Bin 4: 3 -> 0
+    ##  Bin 5: 4 -> 0
+    ##  Bin 6: 5 -> 0
+    ##  Bin 7: 6 -> 0
+    ##  Bin 8: 7 -> 0
+    ##  Bin 9: 8 -> 0
+
+7.  List all rows failing the highest number of edit rules? How many
+    edit rules are failed by these rows?
+
+**Answer**: There is 1 row that fails 3 rules
+
+``` bash
+echo -e "SELECT * FROM purpose" |
+java -jar rulebox.jar errors detect rows --d ctgov_drks.json --c edit_rules.rbx --se --srf 3
+```
+
+    ## Reading constraints
+    ## Reading data...
+    ## SQL query:
+    ## {ctgov_purpose=Treatment,ctgov_study_type=Interventional,drks_purpose=Treatment,drks_study_type=Non-interventional,observational_model=null,study_type_non_interventional=Observational study}
+    ##   Failed sigma rules:
+    ##   drks_purpose in {'Treatment'} & study_type_non_interventional in {'Observational study','Epidemiological study','Other'}
+    ##   ctgov_study_type in {'Interventional'} & study_type_non_interventional in {'Observational study','Epidemiological study','Other'}
+    ##   ctgov_purpose in {'Treatment'} & study_type_non_interventional in {'Observational study','Epidemiological study','Other'}
+    ## 
+    ## Invalid rows (at least one error): 42
+    ## 
+    ## Histogram for sigma rule failures
+    ## 
+    ##  Bin 1: 0 -> 1470
+    ##  Bin 2: 1 -> 41
+    ##  Bin 3: 2 -> 0
+    ##  Bin 4: 3 -> 1
+    ##  Bin 5: 4 -> 0
+    ##  Bin 6: 5 -> 0
+    ##  Bin 7: 6 -> 0
+    ##  Bin 8: 7 -> 0
+    ##  Bin 9: 8 -> 0
+    ##  Bin 10: 9 -> 0
+    ##  Bin 11: 10 -> 0
+    ##  Bin 12: 11 -> 0
+    ##  Bin 13: 12 -> 0
+    ##  Bin 14: 13 -> 0
+    ##  Bin 15: 14 -> 0
+    ##  Bin 16: 15 -> 0
+    ##  Bin 17: 16 -> 0
+    ##  Bin 18: 17 -> 0
+    ##  Bin 19: 18 -> 0
+    ##  Bin 20: 19 -> 0
+    ##  Bin 21: 20 -> 0
+    ##  Bin 22: 21 -> 0
+    ##  Bin 23: 22 -> 0
+    ##  Bin 24: 23 -> 0
+
+8.  List all edit rules that are failed by the highest number of rows?
+    How many rows fail these edit rules?
+
+**Answer** Edit rule E2 has the maximum of failed rows with 15 rows
+failing the edit rule.
+
+``` bash
+echo -e "SELECT * FROM purpose" |
+java -jar rulebox.jar errors detect sigma --d ctgov_drks.json --c edit_rules.rbx
+```
+
+    ## Reading constraints
+    ## Reading data...
+    ## SQL query:
+    ## Rule: drks_purpose in {'Prognosis'} & ctgov_purpose in {'Prevention','Screening','Treatment','Basic Science','Diagnostic','Supportive Care','Health Services Research'}
+    ## Violations: 2
+    ## 
+    ## Rule: drks_purpose in {'Screening'} & ctgov_purpose in {'Prevention','Treatment','Basic Science','Diagnostic','Supportive Care','Health Services Research','Other'}
+    ## Violations: 1
+    ## 
+    ## Rule: drks_purpose in {'Treatment'} & ctgov_purpose in {'Prevention','Screening','Basic Science','Diagnostic','Supportive Care','Health Services Research','Other'}
+    ## Violations: 10
+    ## 
+    ## Rule: drks_purpose in {'Other'} & ctgov_purpose in {'Prevention','Screening','Treatment','Basic Science','Diagnostic','Supportive Care','Health Services Research'}
+    ## Violations: 9
+    ## 
+    ## Rule: drks_purpose in {'Prevention'} & ctgov_purpose in {'Screening','Treatment','Basic Science','Diagnostic','Supportive Care','Health Services Research','Other'}
+    ## Violations: 3
+    ## 
+    ## Rule: study_type_non_interventional in {'Observational study','Epidemiological study','Other'} & ctgov_study_type in {'Interventional'}
+    ## Violations: 1
+    ## 
+    ## Rule: study_type_non_interventional in {'Observational study','Epidemiological study','Other'} & drks_purpose in {'Treatment'}
+    ## Violations: 15
+    ## 
+    ## Rule: observational_model notin {'N/A','Case Control','Case Crossover','Cohort','Case Only','Natural History','Ecological or Community','Other'}
+    ## Violations: 2
+    ## 
+    ## Rule: study_type_non_interventional in {'Observational study','Epidemiological study','Other'} & ctgov_purpose in {'Treatment'}
+    ## Violations: 1
+
+# 5. Error Localization
+
+| Edit Rule | Attributes involved |
+|-----------|---------------------|
+| E1        | {`stni`, `cp`}      |
+| E2        | {`stni`, `dp`}      |
+| E3        | {`cp`, `dp`}        |
+| E4        | {`cp`, `dp`}        |
+| E5        | {`cp`, `dp`}        |
+| E6        | {`cp`, `dp`}        |
+| E7        | {`cp`, `dp`}        |
+| E8        | {`cp`, `dp`}        |
+| E9        | {`cp`, `dp`}        |
+| E10       | {`cp`, `dp`}        |
+| E11       | {`cp`, `dp`}        |
+| E12       | {`cst`, `stni`}     |
+| E13       | {`cst`, `stni`}     |
+| E14       | {`dst`, `stni`}     |
+| E15       | {`dst`, `stni`}     |
+| E16       | {`stni`, `om`}      |
+| E17       | {`stni`, `om`}      |
+
+| Row Index | failed edit rules | see table above                            | minimal set cover |
+|-----------|-------------------|--------------------------------------------|-------------------|
+| 1         | E1, E3, E16       | {`stni`, `cp`},{`stni`, `om`},{`cp`, `dp`} | {`stni`,`cp`}     |
+|           |                   |                                            | {`stni`, `dp`}    |
+|           |                   |                                            | {`cp`, `om`}      |
+| 2         | E16               | {`stni`, `om`}                             | {`stni`, `om`}    |
+| 3         | None              | None                                       | None              |
+| 4         | E5, E12, E17      | {`cp`, `dp`}{`cst`, `stni`}{`stni`, `om`}  | {`cp`, `stni`}    |
+|           |                   |                                            | {`dp`, `stni`}    |

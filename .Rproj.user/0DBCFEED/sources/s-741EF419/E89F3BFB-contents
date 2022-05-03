@@ -38,7 +38,7 @@ Provide solutions to the following data exploration exercises related to the dat
 **Answer**: There are 1511 rows in the `purpose` table 
 
 ```{bash}
-echo -e "SELECT * FROM purpose" | java -jar rulebox.jar explore stats --d clinicaltrials.json
+echo -e "SELECT * FROM purpose" | java -jar rulebox.jar explore stats --d ctgov_drks.json
 ```
 
 2. Get the total number of rows in which both attributes cst and dst take value ‘Interventional’.
@@ -47,7 +47,7 @@ echo -e "SELECT * FROM purpose" | java -jar rulebox.jar explore stats --d clinic
 
 ```{bash}
 echo -e "SELECT * FROM purpose WHERE ctgov_study_type = 'Interventional' AND drks_study_type = 'Interventional'" | 
-java -jar rulebox.jar explore stats --d clinicaltrials.json
+java -jar rulebox.jar explore stats --d ctgov_drks.json
 ```
 
 3. Get the total number of rows in which the attributes cp and dp take equal, non-NULL values (so, different values with the same semantical meaning should not be considered equal). Make sure to check this in a case insensitive way.
@@ -56,7 +56,7 @@ java -jar rulebox.jar explore stats --d clinicaltrials.json
 
 ```{bash}
 echo -e "SELECT * FROM purpose WHERE ctgov_purpose ilike drks_purpose AND ctgov_purpose IS NOT null" | 
-java -jar rulebox.jar explore stats --d clinicaltrials.json
+java -jar rulebox.jar explore stats --d ctgov_drks.json
 ```
 
 4. Get the total number of rows containing at least one NULL-value.
@@ -105,10 +105,11 @@ ORDER BY sum_of_nulls asc
 
 ```{bash}
 echo -e "SELECT * FROM purpose" |
-java -jar rulebox.jar explore stats --d clinicaltrials.json
+java -jar rulebox.jar explore stats --d ctgov_drks.json
 ```
 
 # 2. Basic definitions
+
 Provide answers to the following exercises in your report.
 
 1. Explain in your own words the underlying meaning of edit rules
@@ -119,13 +120,154 @@ c) E16: the `stni` and `om` attributes further specify observational studies (Fr
 
 2. List, for each of the following edit rules, which attributes are involved in the edit rule.
 
-a) E1
-b) E5
-c) E14
-d) E17
+a) E1: {`stni`, `cp`}
+b) E5: {`cp`, `dp`}
+c) E14: {`dst`, `stni`}
+d) E17: {`stni`, `om`} 
 
 3. For each of the following sets of attributes, list those edit rules that involve all attributes in that set.
 
-a) {stni}
-b) {cp,dp}
-c) {dst,om}
+a) {stni}: E1, E2, E12, E13, E14, E15, E16, E17
+b) {cp,dp}: E3, E4, E5, E6, E7, E8, E9, 10, E11
+c) {dst,om}: None (empty set)
+
+# 3.Redundancy
+
+Provide answers to the following exercises in your report.
+
+1. Construct an edit rule Er that is redundant to E2 and in which exactly 4 attributes are involved.
+
+**Answer**: (**NOT SURE**): stni:{Epidemiological study, Observational study, Other} x dp:{Treatment} x cst: {Interventional} x dst:{Interventional}
+
+2. Is it possible to construct an edit rule Er that is redundant to E14 in which attribute stni is not involved? Why (not)?
+
+**Answer**: (**NOT SURE**) Not possible, an edit rule Er can only be redundant to E14 if Er is a subset of E14. If we try to lose attribute `stni`, than Er can never be fully contained in E14. 
+
+# 4. Error detection
+
+Provide solutions to the following error detection exercises related to the example data (Table 1) in your report.
+
+1. List, for each row given in Table 1, which edit rules in E are failed by the corresponding row.
+
+|Row Index|failed edit rules|
+|---|---|
+|1|E1, E3, E16|
+|2|E16|
+|3|None|
+|4|E5, E12, E17|
+
+2. Is it possible to give an example row that fails both edit rules E5 and E8, but no additional ones. If so, give such an example row. If not, explain why. 
+
+**Answer**: Not possible. To fail both E5 and E8, an example row should have a `dp` value of both 'Diagnostic' and 'Health Care System' at the same time, as otherwise edit rules E5 and E8 can never be failed at the same time. This is not possible, as the `dp` attribute always takes on only one value at a time, so to construct such an example row is not possible.
+
+3. Is it possible to give an example row that fails both edit rules E13 and E15, but no additional ones. If so, give such an example row. If not, explain why.
+`
+**Answer**: `cst`: {Observational}, `dst`:{Non-Interventional}, `stni`:{N/A} + any combination of the other attributes
+
+Provide solutions to the following error detection exercises related to the data in the purpose table (so not the example data) in your report. For this, we ask to create a .rbx file containing all the given edit rules defined on the data first. Add this .rbx file to the final .zip file.
+
+4. Get the total number of rows failing at least one edit rule.
+
+**Answer**: There are 40 such rows
+
+```{bash}
+echo -e "SELECT * FROM purpose" |
+java -jar rulebox.jar errors detect rows --d ctgov_drks.json --c purpose_rules.rbx
+```
+
+
+5. Get the total number of rows failing edit rule E11.
+
+**Answer**: There are 3 such rows
+
+```{sql connection=con}
+SELECT *
+FROM purpose
+WHERE (
+  ctgov_purpose = 'Basic Science' 
+  OR ctgov_purpose = 'Diagnostic'
+  OR ctgov_purpose = 'Health Services Research'
+  OR ctgov_purpose = 'Other'
+  OR ctgov_purpose ='Supportive Care'
+  OR ctgov_purpose ='Screening'
+  OR ctgov_purpose ='Treatment'
+  ) AND drks_purpose = 'Prevention'
+```
+
+
+```{bash}
+echo -e "SELECT * FROM purpose" |
+java -jar rulebox.jar errors detect rows --d ctgov_drks.json --c edit_rules_E11.rbx
+```
+
+6. Get the total number of rows failing edit rules E1 and E17.
+
+
+**Answer**: 0 rows fail both E1 and E17
+
+```{sql connection=con}
+SELECT *
+FROM purpose
+WHERE 
+	(study_type_non_interventional = 'Epidemiological study'
+	 OR study_type_non_interventional = 'Observational study'
+	 OR study_type_non_interventional = 'Other'
+	)
+	AND observational_model = 'N/A'
+	AND ctgov_purpose = 'Treatment'
+```
+
+
+```{bash}
+echo -e "SELECT * FROM purpose" |
+java -jar rulebox.jar errors detect rows --d ctgov_drks.json --c edit_rules_E1_E17.rbx
+```
+
+7. List all rows failing the highest number of edit rules? How many edit rules are failed by these rows?
+
+**Answer**: There is 1 row that fails 3 rules
+
+```{bash}
+echo -e "SELECT * FROM purpose" |
+java -jar rulebox.jar errors detect rows --d ctgov_drks.json --c edit_rules.rbx --se --srf 3
+```
+
+8. List all edit rules that are failed by the highest number of rows? How many rows fail these edit rules?
+
+**Answer** Edit rule E2 has the maximum of failed rows with 15 rows failing the edit rule.
+
+```{bash}
+echo -e "SELECT * FROM purpose" |
+java -jar rulebox.jar errors detect sigma --d ctgov_drks.json --c edit_rules.rbx
+```
+
+# 5. Error Localization
+| Edit Rule | Attributes involved|
+|-----------|--------------------|
+| E1        |{`stni`, `cp`}      |
+| E2        |{`stni`, `dp`}      |
+| E3        |{`cp`, `dp`}        |
+| E4        |{`cp`, `dp`}        |
+| E5        |{`cp`, `dp`}        |
+| E6        |{`cp`, `dp`}        |
+| E7        |{`cp`, `dp`}        |
+| E8        |{`cp`, `dp`}        |
+| E9        |{`cp`, `dp`}        |
+| E10       |{`cp`, `dp`}        |
+| E11       |{`cp`, `dp`}        |
+| E12       |{`cst`, `stni`}     |
+| E13       |{`cst`, `stni`}     |
+| E14       |{`dst`, `stni`}     |
+| E15       |{`dst`, `stni`}     |
+| E16       |{`stni`, `om`}      |
+| E17       |{`stni`, `om`}      |
+
+| Row Index | failed edit rules | see table above                            | minimal set cover |Solution|
+|-----------|-------------------|--------------------------------------------|-------------------|--------|
+| 1         | E1, E3, E16       | {`stni`, `cp`},{`stni`, `om`},{`cp`, `dp`} | {`stni`,`cp`}     |  |
+|           |                   |                                            | {`stni`, `dp`}    |  |
+|           |                   |                                            | {`cp`, `om`}      |  |
+| 2         | E16               | {`stni`, `om`}                             | {`stni`, `om`}    |  |
+| 3         | None              | None                                       | None              |  |
+| 4         | E5, E12, E17      | {`cp`, `dp`}{`cst`, `stni`}{`stni`, `om`}  | {`cp`, `stni`}    |  |
+|           |                   |                                            | {`dp`, `stni`}    |  |
