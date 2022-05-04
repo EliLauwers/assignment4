@@ -33,7 +33,9 @@ This document is the answer to the fourth databases assignment on database edit 
 
 Provide solutions to the following data exploration exercises related to the data in the `purpose` table (so not the example data given in Table 1) in your report.
 
-1. Get the total number of rows.
+### Exercise 1.1 
+
+**assignment**: Get the total number of rows.
 
 **Answer**: There are 1512 rows in the `purpose` table 
 
