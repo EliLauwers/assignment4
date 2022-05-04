@@ -1,1 +1,0 @@
-echo -e "SELECT * FROM design"" | java -jar rulebox.jar explore header --d clinicaltrials.json

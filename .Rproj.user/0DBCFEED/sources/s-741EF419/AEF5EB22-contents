@@ -1,2 +1,0 @@
-echo -e "SELECT * FROM purpose WHERE ctgov_study_type = 'Interventional' AND drks_study_type = 'Interventional'" | 
-java -jar rulebox.jar explore stats --d clinicaltrials.json

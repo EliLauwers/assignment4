@@ -151,7 +151,7 @@ Provide solutions to the following error detection exercises related to the exam
 
 |Row Index|failed edit rules|
 |---|---|
-|1|E1, E3, E16|
+|1|E1, E3|
 |2|E16|
 |3|None|
 |4|E5, E12, E17|
@@ -262,12 +262,62 @@ java -jar rulebox.jar errors detect sigma --d ctgov_drks.json --c edit_rules.rbx
 | E16       |{`stni`, `om`}      |
 | E17       |{`stni`, `om`}      |
 
-| Row Index | failed edit rules | see table above                            | minimal set cover |Solution|
-|-----------|-------------------|--------------------------------------------|-------------------|--------|
-| 1         | E1, E3, E16       | {`stni`, `cp`},{`stni`, `om`},{`cp`, `dp`} | {`stni`,`cp`}     |  |
-|           |                   |                                            | {`stni`, `dp`}    |  |
-|           |                   |                                            | {`cp`, `om`}      |  |
-| 2         | E16               | {`stni`, `om`}                             | {`stni`, `om`}    |  |
-| 3         | None              | None                                       | None              |  |
-| 4         | E5, E12, E17      | {`cp`, `dp`}{`cst`, `stni`}{`stni`, `om`}  | {`cp`, `stni`}    |  |
-|           |                   |                                            | {`dp`, `stni`}    |  |
+| Row Index | failed edit rules | see table above                             | minimal set cover |Solution|
+|-----------|-------------------|---------------------------------------------|-------------------|--------|
+| 1         | E1, E3            |{`stni`, `cp`}, {`cp`, `dp`}                 | {`cp`}            |Yes|
+| 2         | E16               |{`stni`, `om`}                               | {`stni`}          |No (E1 fails)|
+|           |                   |                                             | {`om`}            |Yes (om: N/A)|
+| 3         | None              |None                                         | None              ||
+| 4         | E5, E12, E17      |{`cp`, `dp`}, {`cst`, `stni`}, {`stni`, `om`}| {`cp`, `stni`}    |No|
+|           |                   |                                             | {`dp`, `stni`}    |No |
+
+# 6. Implication
+
+| Edit Rule | Attributes involved|
+|-----------|--------------------|
+| E1        |{`stni`, `cp`}      |
+| E2        |{`stni`, `dp`}      |
+| E3        |{`cp`, `dp`}        |
+| E4        |{`cp`, `dp`}        |
+| E5        |{`cp`, `dp`}        |
+| E6        |{`cp`, `dp`}        |
+| E7        |{`cp`, `dp`}        |
+| E8        |{`cp`, `dp`}        |
+| E9        |{`cp`, `dp`}        |
+| E10       |{`cp`, `dp`}        |
+| E11       |{`cp`, `dp`}        |
+| E12       |{`cst`, `stni`}     |
+| E13       |{`cst`, `stni`}     |
+| E14       |{`dst`, `stni`}     |
+| E15       |{`dst`, `stni`}     |
+| E16       |{`stni`, `om`}      |
+| E17       |{`stni`, `om`}      |
+
+
+| Type                        |      Er1     | Er2 | cst | dst |                         stni                        |   om  |      cp     |      dp     |
+|-----------------------------|:------------:|:---:|:---:|:---:|:---------------------------------------------------:|:-----:|:-----------:|:-----------:|
+| Tautology                   |      E16     | E17 |     |     |                        empty                        | empty |             |             |
+| implied non-essentially new |      E1      | E17 |     |     | {Epidemiological study, Observational study, other} | {N/A} | {Treatment} |             |
+| Essentially new             |      E1      |  E4 |     |     | {Epidemiological study, Observational study, other} |       |     A_cp    | {Treatment} |
+| Contradiction               | not possible |     |     |     |                                                     |       |             |             |
+
+# 7. Sufficient Set Generation
+
+1
+.(1): E1, E3, E4, E5, E6, E7, E8, E9, E10, E11
+.(12): geen cp, wel stni (generator) en alles uit (1): E2, E12, E13, E14, E15, E16, E17
+.(123) geen cp, geen stni, wel dp (generator) en alles uit (1) en (12): E18, E19, E20
+
+| name | node | Er1 | Er2 |     redundant     |                        cst                       |          dst         |                         stni                        |                                                om                                                |  cp  |      dp     |
+|:----:|:----:|:---:|:---:|:-----------------:|:------------------------------------------------:|:--------------------:|:---------------------------------------------------:|:------------------------------------------------------------------------------------------------:|:----:|:-----------:|
+|      | root |     |     |                   |                                                  |                      |                                                     |                                                                                                  |      |             |
+|      |  (1) |  E1 |  E4 | Yes: E2 dominates |                                                  |                      | {Epidemiological study, Observational study, Other} |                                                                                                  | A_cp | {Treatment} |
+|  E18 | (12) |  E2 | E13 |         No        | {Observational, Observational [Patient Registry} |                      |                        A_stni                       |                                                                                                  |      | {Treatment} |
+|  E19 | (12) |  E2 | E15 |         No        |                                                  | {Non-Interventional} |                        A_stni                       |                                                                                                  |      | {Treatment} |
+|  E20 | (12) |  E2 | E16 |         No        |                                                  |                      |                        A_stni                       | {Case Control, Case Crossover, Case Only, Cohort, Ecologic or Community, Natural History, Other} |      | {Treatment} |
+|  E21 | (12) | E12 | E15 |         No        |                 {Interventional}                 | {Non-Interventional} |                        A_stni                       |                                                                                                  |      |             |
+|  E22 | (12) | E12 | E16 |         No        |                 {Interventional}                 |                      |                        A_stni                       | {Case Control, Case Crossover, Case Only, Cohort, Ecologic or Community, Natural History, Other} |      |             |
+|  E23 | (12) | E13 | E14 |         No        | {Observational, Observational [Patient Registry} |   {Interventional}   |                        A_stni                       |                                                                                                  |      |             |
+|  E24 | (12) | E13 | E17 |         No        | {Observational, Observational [Patient Registry} |                      |                        A_stni                       |                                               {N/A}                                              |      |             |
+|  E25 | (12) | E14 | E16 |         No        |                                                  |   {Interventional}   |                        A_stni                       | {Case Control, Case Crossover, Case Only, Cohort, Ecologic or Community, Natural History, Other} |      |             |
+|  E26 | (12) | E14 | E17 |         No        |                                                  |   {Interventional}   |                        A_stni                       |                                               {N/A}                                              |      |             |
