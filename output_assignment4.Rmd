@@ -35,7 +35,7 @@ Provide solutions to the following data exploration exercises related to the dat
 
 1. Get the total number of rows.
 
-**Answer**: There are 1511 rows in the `purpose` table 
+**Answer**: There are 1512 rows in the `purpose` table 
 
 ```{bash}
 echo -e "SELECT * FROM purpose" | java -jar rulebox.jar explore stats --d ctgov_drks.json
@@ -94,14 +94,14 @@ ORDER BY sum_of_nulls asc
 
 **Answer**:
 
-|Attribute|no. null values|
-|---|---|
-|study_type_non_interventional|1|
-|ctgov_purpose|244|
-|drks_purpose|209|
-|drks_study_type|0|
-|ctgov_study_type|0|
-|observational_model|0|
+|Attribute                    |code |non-null vals|
+|-----------------------------|:---:|:-----------:|
+|study_type_non_interventional|stni |1511         |
+|ctgov_purpose                |cp   |1268         |
+|drks_purpose                 |dp   |1303         |
+|drks_study_type              |dst  |1512         |
+|ctgov_study_type             |cst  |1512         |
+|observational_model          |om   |1500         |
 
 ```{bash}
 echo -e "SELECT * FROM purpose" |
@@ -115,8 +115,8 @@ Provide answers to the following exercises in your report.
 1. Explain in your own words the underlying meaning of edit rules
 
 a) E3: For `cp`, there are 8 predefined study purposes ('Screening' + 7 other unique purposes). Rule E3 states that none of the 7 other purposes can be linked to the 'Screening' purpose for `dp`. So when `dp` takes a value of 'Screening', the `cp` must do so too.
-b) E12: The `dst` attribute can take on two potential values. The `stni` attribute is used to further specify the 'non interventional' value for the `dst` attribute. When the `dst` attribute takes on the value of 'interventional', the `stni` should take on the value of 'N/A'. It means that a valid pattern is `cst`: Interventional, `dst`: Interventional, `stni`: N/A. Edit rule E12 makes this a bit more concrete. The rule states that whenever `cst` takes on a value of 'Interventional', the `stni` attribute cannot take on any other value than the value of 'N/A'.
-c) E16: the `stni` and `om` attributes further specify observational studies (From the `cst` and `dst` attributes, we know that observational is equivalent to non-interventional). Edit rule E16 states that whenever the `stni` attribute indicates a interventional study instead of a non-interventional one, the `om` attribute should not indicate a further specification of an observational study. It does so by implying that `stni`:'N/A' can only be coupled with `om`:'N/A' and not with any of the 7 other specifications of observational studies.
+b) E12: The `dst` attribute (so not the `cst` attribute) can take on two potential values. The `stni` attribute is used to further specify the 'non interventional' value for the `dst` attribute. When the `dst` attribute takes on the value of 'interventional', the `stni` should take on the value of 'N/A'. It means that a valid pattern is `cst`: Interventional, `dst`: Interventional, `stni`: N/A. Edit rule E12 makes this a bit more concrete. The rule states that whenever `cst` takes on a value of 'Interventional', the `stni` attribute cannot take on any other value than the value of 'N/A', as `cst`: Interventional implies that ctgov indicates a non-observational study, so drks should not use `stni` to specify an observational study.
+c) E16: the `stni` and `om` attributes further specify observational studies (From the `cst` and `dst` attributes, we know that observational is equivalent to non-interventional). Edit rule E16 states that whenever the `stni` attribute indicates a non-interventional study instead of an interventional one, the `om` attribute should also indicate a further specification of an observational study. It does so by implying that `stni`:'N/A' can only be coupled with `om`:'N/A' and not with any of the 7 other specifications of observational studies.
 
 2. List, for each of the following edit rules, which attributes are involved in the edit rule.
 
@@ -303,10 +303,11 @@ java -jar rulebox.jar errors detect sigma --d ctgov_drks.json --c edit_rules.rbx
 
 # 7. Sufficient Set Generation
 
-1
-.(1): E1, E3, E4, E5, E6, E7, E8, E9, E10, E11
-.(12): geen cp, wel stni (generator) en alles uit (1): E2, E12, E13, E14, E15, E16, E17
-.(123) geen cp, geen stni, wel dp (generator) en alles uit (1) en (12): E18, E19, E20
+| node  | Excluded | Generator | Involved rules                           |
+|-------|----------|-----------|------------------------------------------|
+| (1)   |          | cp        | E1, E3, E4, E5, E6, E7, E8, E9, E10, E11 |
+| (12)  | cp       | stni      | E2, E12, E13, E14, E15, E16, E17         |
+| (123) | cp, stni | dp        | E18, E19, E20                            |
 
 | name | node | Er1 | Er2 |     redundant     |                        cst                       |          dst         |                         stni                        |                                                om                                                |  cp  |      dp     |
 |:----:|:----:|:---:|:---:|:-----------------:|:------------------------------------------------:|:--------------------:|:---------------------------------------------------:|:------------------------------------------------------------------------------------------------:|:----:|:-----------:|
@@ -321,3 +322,23 @@ java -jar rulebox.jar errors detect sigma --d ctgov_drks.json --c edit_rules.rbx
 |  E24 | (12) | E13 | E17 |         No        | {Observational, Observational [Patient Registry} |                      |                        A_stni                       |                                               {N/A}                                              |      |             |
 |  E25 | (12) | E14 | E16 |         No        |                                                  |   {Interventional}   |                        A_stni                       | {Case Control, Case Crossover, Case Only, Cohort, Ecologic or Community, Natural History, Other} |      |             |
 |  E26 | (12) | E14 | E17 |         No        |                                                  |   {Interventional}   |                        A_stni                       |                                               {N/A}                                              |      |             |
+
+3. Do you need to visit node (1234)? No, because node (123) did not produce anything new Do you need to visit node (124)? Yes, as node (12) produced some new nodes.
+
+```{bash}
+java -jar rulebox.jar reason fcf --c edit_rules.rbx --of edit_rules_sufficient.rbx
+```
+
+list of rules in sufficient set but not in epsilon
+- dp: {'Treatment'} x om: {'Case Control','Cohort','Ecologic or Community','Case Crossover','Case Only','Natural History','Other'}
+- cst: {'Observational [Patient Registry]','Observational'} x dp: {'Treatment'}
+- cp: {'Prevention','Screening','Treatment','Basic Science','Diagnostic','Health Services Research','Other'} dp: {}
+- cst: {'Observational [Patient Registry]','Observational'} x cp: {'Treatment'}
+- om: {'N/A'} x dst: {'Non-interventional'}
+- cst: {'Interventional'} x om: {'Case Control','Cohort','Ecologic or Community','Case Crossover','Case Only','Natural History','Other'}
+- cp: {'Treatment'} x dst: {'Non-interventional'}
+- cst: {'Observational [Patient Registry]','Observational'} x dst: {'Interventional'}
+- cp: {'Treatment'} x om: {'Case Control','Cohort','Ecologic or Community','Case Crossover','Case Only','Natural History','Other'}
+- cst: {'Observational [Patient Registry]','Observational'} x om: {'N/A'}
+- dst: {'Non-interventional'} x cst: {'Interventional'}
+- dp: {'Treatment'} x dst {'Non-interventional'}
