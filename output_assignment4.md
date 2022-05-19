@@ -761,12 +761,11 @@ write your results in the report.
 | \(12\)  | stni      | cp                  | E2, E12, E13, E14, E15, E16, E17         |
 | \(123\) | dp        | cp, stni            | E18, E19, E20                            |
 
-The table below shows per type of rule (Tautology, implied
-non-essentially new, ..) which two edit rules should be combined. empty
-attribute cells indicate attributes that are not involved in the source
-rules. An attribute cell like ‘A\_cp’, means that the attribute was
-involved in the rules but the attribute is not involved in the resulting
-rule. The capital A stands for the domain of that attribute.
+Empty attribute cells in the table below indicate attributes that are
+not involved in the source rules. An attribute cell like ‘A\_cp’, means
+that the attribute was involved in the rules but the attribute is not
+involved in the resulting rule. The capital A stands for the domain of
+said attribute.
 
 | name |  node  | Er1 | Er2 |     redundant     |                        cst                        |         dst          |                        stni                         |                                                om                                                |  cp   |     dp      |
 |:----:|:------:|:---:|:---:|:-----------------:|:-------------------------------------------------:|:--------------------:|:---------------------------------------------------:|:------------------------------------------------------------------------------------------------:|:-----:|:-----------:|
@@ -816,7 +815,8 @@ java -jar rulebox.jar reason fcf --c edit_rules.rbx --of edit_rules_sufficient.r
 -   cst: {‘Observational \[Patient Registry\]’,‘Observational’} x dp:
     {‘Treatment’}
 -   cp: {‘Prevention’,‘Screening’,‘Treatment’,‘Basic
-    Science’,‘Diagnostic’,‘Health Services Research’,‘Other’} x dp: {}
+    Science’,‘Diagnostic’,‘Health Services Research’,‘Other’} x dp:
+    {‘Supportive care’}
 -   cst: {‘Observational \[Patient Registry\]’,‘Observational’} x cp:
     {‘Treatment’}
 -   om: {‘N/A’} x dst: {‘Non-interventional’}
