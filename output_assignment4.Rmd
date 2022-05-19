@@ -106,14 +106,14 @@ ORDER BY sum_of_nulls asc
 
 **Answer**:
 
-|Attribute                    |code |non-null vals|
-|-----------------------------|:---:|:-----------:|
-|study_type_non_interventional|stni |1511         |
-|ctgov_purpose                |cp   |1268         |
-|drks_purpose                 |dp   |1303         |
-|drks_study_type              |dst  |1512         |
-|ctgov_study_type             |cst  |1512         |
-|observational_model          |om   |1500         |
+|Attribute                    |code |non-null vals|null vals    |
+|-----------------------------|:---:|:-----------:|:-----------:|
+|study_type_non_interventional|stni |1511         |1            |
+|ctgov_purpose                |cp   |1268         |244          |
+|drks_purpose                 |dp   |1303         |209          |
+|drks_study_type              |dst  |1512         |0            |
+|ctgov_study_type             |cst  |1512         |0            |
+|observational_model          |om   |1500         |12           |
 
 ```{bash}
 echo -e "SELECT * FROM purpose" |

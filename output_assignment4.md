@@ -231,14 +231,14 @@ containing a NULL-value for the corresponding attribute.
 
 **Answer**:
 
-| Attribute                        | code | non-null vals |
-|----------------------------------|:----:|:-------------:|
-| study\_type\_non\_interventional | stni |     1511      |
-| ctgov\_purpose                   |  cp  |     1268      |
-| drks\_purpose                    |  dp  |     1303      |
-| drks\_study\_type                | dst  |     1512      |
-| ctgov\_study\_type               | cst  |     1512      |
-| observational\_model             |  om  |     1500      |
+| Attribute                        | code | non-null vals | null vals |
+|----------------------------------|:----:|:-------------:|:---------:|
+| study\_type\_non\_interventional | stni |     1511      |     1     |
+| ctgov\_purpose                   |  cp  |     1268      |    244    |
+| drks\_purpose                    |  dp  |     1303      |    209    |
+| drks\_study\_type                | dst  |     1512      |     0     |
+| ctgov\_study\_type               | cst  |     1512      |     0     |
+| observational\_model             |  om  |     1500      |    12     |
 
 ``` bash
 echo -e "SELECT * FROM purpose" |
@@ -398,8 +398,9 @@ possible.
 **Assignment**: Is it possible to give an example row that fails both
 edit rules E13 and E15, but no additional ones. If so, give such an
 example row. If not, explain why.
-`**Answer**:`cst`: {Observational} x`dst`:{Non-Interventional} x`stni`:{N/A} x`om`: {N/A} x`cp`: {Prevention} x`dp\`:
-{prevention}
+
+**Answer**: `cst`: {Observational} x `dst`:{Non-Interventional} x
+`stni`:{N/A} x `om`: {N/A} x `cp`: {Prevention} x `dp`: {prevention}
 
 ## Exercise 4.4
 
@@ -412,7 +413,7 @@ file.
 **Assignment**: Get the total number of rows failing at least one edit
 rule.
 
-**Answer**: There are 40 such rows
+**Answer**: There are 43 such rows
 
 ``` bash
 echo -e "SELECT * FROM purpose" |
@@ -423,12 +424,12 @@ java -jar rulebox.jar errors detect rows --d ctgov_drks.json --c edit_rules.rbx
     ## Reading data...
     ## SQL query:
     ## 
-    ## Invalid rows (at least one error): 40
+    ## Invalid rows (at least one error): 43
     ## 
     ## Histogram for sigma rule failures
     ## 
-    ##  Bin 1: 0 -> 1472
-    ##  Bin 2: 1 -> 39
+    ##  Bin 1: 0 -> 1469
+    ##  Bin 2: 1 -> 42
     ##  Bin 3: 2 -> 0
     ##  Bin 4: 3 -> 1
     ##  Bin 5: 4 -> 0
@@ -506,6 +507,9 @@ java -jar rulebox.jar errors detect sigma --d ctgov_drks.json --c edit_rules.rbx
     ## 
     ## Rule: drks_purpose in {'Prevention'} & ctgov_purpose in {'Screening','Treatment','Basic Science','Diagnostic','Supportive Care','Health Services Research','Other'}
     ## Violations: 3
+    ## 
+    ## Rule: ctgov_purpose in {'Prevention','Screening','Treatment','Basic Science','Diagnostic','Health Services Research','Other'} & drks_purpose in {'Supportive care'}
+    ## Violations: 3
 
 ## Exercise 4.6
 
@@ -577,12 +581,12 @@ java -jar rulebox.jar errors detect rows --d ctgov_drks.json --c edit_rules.rbx 
     ##   ctgov_study_type in {'Interventional'} & study_type_non_interventional in {'Observational study','Epidemiological study','Other'}
     ##   ctgov_purpose in {'Treatment'} & study_type_non_interventional in {'Observational study','Epidemiological study','Other'}
     ## 
-    ## Invalid rows (at least one error): 40
+    ## Invalid rows (at least one error): 43
     ## 
     ## Histogram for sigma rule failures
     ## 
-    ##  Bin 1: 0 -> 1472
-    ##  Bin 2: 1 -> 39
+    ##  Bin 1: 0 -> 1469
+    ##  Bin 2: 1 -> 42
     ##  Bin 3: 2 -> 0
     ##  Bin 4: 3 -> 1
     ##  Bin 5: 4 -> 0
@@ -635,6 +639,9 @@ java -jar rulebox.jar errors detect sigma --d ctgov_drks.json --c edit_rules.rbx
     ## Violations: 9
     ## 
     ## Rule: drks_purpose in {'Prevention'} & ctgov_purpose in {'Screening','Treatment','Basic Science','Diagnostic','Supportive Care','Health Services Research','Other'}
+    ## Violations: 3
+    ## 
+    ## Rule: ctgov_purpose in {'Prevention','Screening','Treatment','Basic Science','Diagnostic','Health Services Research','Other'} & drks_purpose in {'Supportive care'}
     ## Violations: 3
     ## 
     ## Rule: study_type_non_interventional in {'Observational study','Epidemiological study','Other'} & ctgov_study_type in {'Interventional'}
