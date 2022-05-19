@@ -24,7 +24,7 @@ ctgov_purpose in {'Basic Science', 'Diagnostic', 'Health Services Research', 'Ot
 ctgov_purpose in {'Basic Science', 'Diagnostic', 'Health Services Research', 'Other', 'Prevention', 'Supportive Care', 'Screening'} & drks_purpose in {'Treatment'}
 ctgov_purpose in {'Basic Science', 'Health Services Research', 'Other', 'Prevention', 'Supportive Care', 'Screening', 'Treatment'} & drks_purpose in {'Diagnostic'}
 ctgov_purpose in {'Diagnostic', 'Health Services Research', 'Other', 'Prevention', 'Supportive Care', 'Screening', 'Treatment'} & drks_purpose in {'Basic research/physiological study'}
-ctgov_purpose in {'Basic Science', 'Diagnostic', 'Health Services Research', 'Other', 'Prevention', 'Screening', 'Treatment'} & drks_purpose in {'Supportive Care'}
+ctgov_purpose in {'Basic Science', 'Diagnostic', 'Health Services Research', 'Other', 'Prevention', 'Screening', 'Treatment'} & drks_purpose in {'Supportive care'}
 ctgov_purpose in {'Basic Science', 'Diagnostic', 'Other', 'Prevention', 'Supportive Care', 'Screening', 'Treatment'} & drks_purpose in {'Health care system'}
 ctgov_purpose in {'Basic Science', 'Diagnostic', 'Health Services Research', 'Prevention', 'Supportive Care', 'Screening', 'Treatment'} & drks_purpose in {'Other'}
 ctgov_purpose in {'Basic Science', 'Diagnostic', 'Health Services Research', 'Prevention', 'Supportive Care', 'Screening', 'Treatment'} & drks_purpose in {'Prognosis'}

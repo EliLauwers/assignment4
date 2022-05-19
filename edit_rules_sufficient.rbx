@@ -21,7 +21,6 @@ drks_study_type notin {'Interventional','Non-interventional'}
 
 drks_purpose in {'Treatment'} & observational_model in {'Case Control','Cohort','Ecologic or Community','Case Crossover','Case Only','Natural History','Other'}
 ctgov_study_type in {'Observational [Patient Registry]','Observational'} & drks_purpose in {'Treatment'}
-ctgov_purpose in {'Prevention','Screening','Treatment','Basic Science','Diagnostic','Health Services Research','Other'} & drks_purpose in {}
 observational_model in {'N/A'} & study_type_non_interventional in {'Observational study','Epidemiological study','Other'}
 study_type_non_interventional in {'Observational study','Epidemiological study','Other'} & ctgov_purpose in {'Treatment'}
 ctgov_purpose in {'Prevention','Screening','Treatment','Basic Science','Diagnostic','Supportive Care','Other'} & drks_purpose in {'Health care system'}
@@ -39,6 +38,7 @@ observational_model in {'N/A'} & drks_study_type in {'Non-interventional'}
 ctgov_study_type in {'Interventional'} & observational_model in {'Case Control','Cohort','Ecologic or Community','Case Crossover','Case Only','Natural History','Other'}
 study_type_non_interventional in {'N/A'} & ctgov_study_type in {'Observational [Patient Registry]','Observational'}
 ctgov_purpose in {'Treatment'} & drks_study_type in {'Non-interventional'}
+ctgov_purpose in {'Prevention','Screening','Treatment','Basic Science','Diagnostic','Health Services Research','Other'} & drks_purpose in {'Supportive care'}
 ctgov_study_type in {'Observational [Patient Registry]','Observational'} & drks_study_type in {'Interventional'}
 ctgov_purpose in {'Treatment'} & observational_model in {'Case Control','Cohort','Ecologic or Community','Case Crossover','Case Only','Natural History','Other'}
 ctgov_study_type in {'Observational [Patient Registry]','Observational'} & observational_model in {'N/A'}

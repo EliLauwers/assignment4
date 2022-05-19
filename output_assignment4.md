@@ -793,6 +793,15 @@ of edit rules ­(E) is returned. List all edit rules that are in ­(E) but
 not in E in your report. Add a .rbx file in which all rules in ­(E) are
 defined to your final .zip file.
 
+``` bash
+java -jar rulebox.jar reason fcf --c edit_rules.rbx --of edit_rules_sufficient.rbx
+```
+
+    ## Reading constraints
+    ## Computing sufficient set with FCF
+    ## FCF will be executed with the simple implication manager
+    ## Writing rubix file
+
 **Answer**: list of rules in sufficient set but not in epsilon
 
 -   dp: {‘Treatment’} x om: {‘Case Control’,‘Cohort’,‘Ecologic or
@@ -800,7 +809,7 @@ defined to your final .zip file.
 -   cst: {‘Observational \[Patient Registry\]’,‘Observational’} x dp:
     {‘Treatment’}
 -   cp: {‘Prevention’,‘Screening’,‘Treatment’,‘Basic
-    Science’,‘Diagnostic’,‘Health Services Research’,‘Other’} dp: {}
+    Science’,‘Diagnostic’,‘Health Services Research’,‘Other’} x dp: {}
 -   cst: {‘Observational \[Patient Registry\]’,‘Observational’} x cp:
     {‘Treatment’}
 -   om: {‘N/A’} x dst: {‘Non-interventional’}
@@ -825,12 +834,3 @@ sufficient set was generated, these minimal set covers are now correct
 minimal solutions to the error localization problem for the given rows
 (check this!). You may assume that the weight to change the value of an
 attribute is 1. Write your answer in the report.
-
-``` bash
-java -jar rulebox.jar reason fcf --c edit_rules.rbx --of edit_rules_sufficient.rbx
-```
-
-    ## Reading constraints
-    ## Computing sufficient set with FCF
-    ## FCF will be executed with the simple implication manager
-    ## Writing rubix file

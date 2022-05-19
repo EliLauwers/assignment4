@@ -191,7 +191,7 @@ Provide solutions to the following error detection exercises related to the exam
 ## Exercise 4.3 
 
 **Assignment**: Is it possible to give an example row that fails both edit rules E13 and E15, but no additional ones. If so, give such an example row. If not, explain why.
-`
+
 **Answer**: `cst`: {Observational} x `dst`:{Non-Interventional} x `stni`:{N/A} x `om`: {N/A} x `cp`: {Prevention} x `dp`: {prevention}
 
 
@@ -201,7 +201,7 @@ Provide solutions to the following error detection exercises related to the data
 
 **Assignment**: Get the total number of rows failing at least one edit rule.
 
-**Answer**: There are 40 such rows
+**Answer**: There are 43 such rows
 
 ```{bash}
 echo -e "SELECT * FROM purpose" |
@@ -397,11 +397,15 @@ The table below shows per type of rule (Tautology, implied non-essentially new, 
 
 **Assignment**: After termination of the FCF algorithm, a sufficient set of edit rules ­(E) is returned. List all edit rules that are in ­(E) but not in E in your report. Add a .rbx file in which all rules in ­(E) are defined to your final .zip file.
 
+```{bash}
+java -jar rulebox.jar reason fcf --c edit_rules.rbx --of edit_rules_sufficient.rbx
+```
+
 **Answer**: list of rules in sufficient set but not in epsilon
 
 - dp: {'Treatment'} x om: {'Case Control','Cohort','Ecologic or Community','Case Crossover','Case Only','Natural History','Other'}
 - cst: {'Observational [Patient Registry]','Observational'} x dp: {'Treatment'}
-- cp: {'Prevention','Screening','Treatment','Basic Science','Diagnostic','Health Services Research','Other'} dp: {}
+- cp: {'Prevention','Screening','Treatment','Basic Science','Diagnostic','Health Services Research','Other'} x dp: {}
 - cst: {'Observational [Patient Registry]','Observational'} x cp: {'Treatment'}
 - om: {'N/A'} x dst: {'Non-interventional'}
 - cst: {'Interventional'} x om: {'Case Control','Cohort','Ecologic or Community','Case Crossover','Case Only','Natural History','Other'}
@@ -419,7 +423,4 @@ The table below shows per type of rule (Tautology, implied non-essentially new, 
 
 
 
-```{bash}
-java -jar rulebox.jar reason fcf --c edit_rules.rbx --of edit_rules_sufficient.rbx
-```
 
