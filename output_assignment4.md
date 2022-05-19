@@ -810,27 +810,30 @@ java -jar rulebox.jar reason fcf --c edit_rules.rbx --of edit_rules_sufficient.r
 
 **Answer**: list of rules in sufficient set but not in epsilon
 
--   dp: {‘Treatment’} x om: {‘Case Control’,‘Cohort’,‘Ecologic or
-    Community’,‘Case Crossover’,‘Case Only’,‘Natural History’,‘Other’}
--   cst: {‘Observational \[Patient Registry\]’,‘Observational’} x dp:
-    {‘Treatment’}
--   cp: {‘Prevention’,‘Screening’,‘Treatment’,‘Basic
+-   \[`E18`\] dp: {‘Treatment’} x om: {‘Case Control’,‘Cohort’,‘Ecologic
+    or Community’,‘Case Crossover’,‘Case Only’,‘Natural
+    History’,‘Other’}
+-   \[`E19`\] cst: {‘Observational \[Patient
+    Registry\]’,‘Observational’} x dp: {‘Treatment’}
+-   \[`E20`\] cp: {‘Prevention’,‘Screening’,‘Treatment’,‘Basic
     Science’,‘Diagnostic’,‘Health Services Research’,‘Other’} x dp:
     {‘Supportive care’}
--   cst: {‘Observational \[Patient Registry\]’,‘Observational’} x cp:
-    {‘Treatment’}
--   om: {‘N/A’} x dst: {‘Non-interventional’}
--   cst: {‘Interventional’} x om: {‘Case Control’,‘Cohort’,‘Ecologic or
-    Community’,‘Case Crossover’,‘Case Only’,‘Natural History’,‘Other’}
--   cp: {‘Treatment’} x dst: {‘Non-interventional’}
--   cst: {‘Observational \[Patient Registry\]’,‘Observational’} x dst:
-    {‘Interventional’}
--   cp: {‘Treatment’} x om: {‘Case Control’,‘Cohort’,‘Ecologic or
-    Community’,‘Case Crossover’,‘Case Only’,‘Natural History’,‘Other’}
--   cst: {‘Observational \[Patient Registry\]’,‘Observational’} x om:
-    {‘N/A’}
--   dst: {‘Non-interventional’} x cst: {‘Interventional’}
--   dp: {‘Treatment’} x dst {‘Non-interventional’}
+-   \[`E21`\] cst: {‘Observational \[Patient
+    Registry\]’,‘Observational’} x cp: {‘Treatment’}
+-   \[`E22`\] om: {‘N/A’} x dst: {‘Non-interventional’}
+-   \[`E23`\] cst: {‘Interventional’} x om: {‘Case
+    Control’,‘Cohort’,‘Ecologic or Community’,‘Case Crossover’,‘Case
+    Only’,‘Natural History’,‘Other’}
+-   \[`E24`\] cp: {‘Treatment’} x dst: {‘Non-interventional’}
+-   \[`E25`\] cst: {‘Observational \[Patient
+    Registry\]’,‘Observational’} x dst: {‘Interventional’}
+-   \[`E26`\] cp: {‘Treatment’} x om: {‘Case Control’,‘Cohort’,‘Ecologic
+    or Community’,‘Case Crossover’,‘Case Only’,‘Natural
+    History’,‘Other’}
+-   \[`E27`\] cst: {‘Observational \[Patient
+    Registry\]’,‘Observational’} x om: {‘N/A’}
+-   \[`E28`\] dst: {‘Non-interventional’} x cst: {‘Interventional’}
+-   \[`E29`\] dp: {‘Treatment’} x dst :{‘Non-interventional’}
 
 ## Exercise 7.5
 
@@ -841,3 +844,89 @@ sufficient set was generated, these minimal set covers are now correct
 minimal solutions to the error localization problem for the given rows
 (check this!). You may assume that the weight to change the value of an
 attribute is 1. Write your answer in the report.
+
+| Row Index | failed edit rules      | attributes involved in edit rules (table below)                              | minimal set cover     |
+|:---------:|------------------------|------------------------------------------------------------------------------|-----------------------|
+|     1     | E1, E3, E21, E24, E26  | {`stni`, `cp`}, {`cp`, `dp`}, {`cst`, `cp`}, {`cp`, `dst`}, {`cp`, `om`}     | {`cp`}                |
+|     2     | E16, E18, E23, E26     | {`stni`, `om`}, {`dp`, `om`}, {`cst`, `om`}, {`cp`, `om`}                    | {`om`}                |
+|     3     | None                   | None                                                                         | None                  |
+|     4     | E5, E12, E17, E22, E28 | {`cp`, `dp`}, {`cst`, `stni`}, {`stni`, `om`}, {`om`, `dst`}, {`dst`, `cst`} | {`cst`, `om`, `cp`}   |
+|           |                        |                                                                              | {`cst`, `om`, `dp`}   |
+|           |                        |                                                                              | {`stni`, `dst`, `cp`} |
+|           |                        |                                                                              | {`stni`, `dst`, `dp`} |
+
+## Exercise 8
+
+For row 1: *No row exists*. In the SQL query below, one can iteratively
+emit the next `AND` statement and it will not result in any rows,
+meaning that there is no row that has another value for `cp` than
+‘Treatment’ while all but at most one attributes keep their values.
+
+``` sql
+SELECT * FROM purpose
+WHERE ctgov_purpose != 'Treatment'
+-- AND ctgov_study_type = 'Observational' 
+AND drks_study_type = 'Non-interventional'
+AND study_type_non_interventional = 'Epidemiological study'
+AND observational_model = 'Case Crossover'
+AND drks_purpose = 'Treament'
+```
+
+<div class="knitsql-table">
+
+| ctgov\_study\_type | drks\_study\_type | study\_type\_non\_interventional | observational\_model | ctgov\_purpose | drks\_purpose |
+|:-------------------|:------------------|:---------------------------------|:---------------------|:---------------|:--------------|
+
+0 records
+
+</div>
+
+For row 2: If we remove the restraint on `dp` taking on the value of
+‘Treatment’, we can find some rows which change `om` to ‘N/A’
+
+``` sql
+SELECT * FROM purpose
+WHERE observational_model != 'Cohort'
+AND observational_model = 'N/A'
+AND ctgov_study_type = 'Interventional'
+AND drks_study_type = 'Interventional'
+AND study_type_non_interventional = 'N/A'
+AND ctgov_purpose = 'Treatment'
+-- AND drks_purpose = 'Treament'
+LIMIT 1
+```
+
+<div class="knitsql-table">
+
+| ctgov\_study\_type | drks\_study\_type | study\_type\_non\_interventional | observational\_model | ctgov\_purpose | drks\_purpose |
+|:-------------------|:------------------|:---------------------------------|:---------------------|:---------------|:--------------|
+| Interventional     | Interventional    | N/A                              | N/A                  | Treatment      | Treatment     |
+
+1 records
+
+</div>
+
+For row 3: No action is needed as this row does not fail any rules.
+
+For row 4:
+
+``` sql
+SELECT * FROM purpose
+WHERE ctgov_study_type != 'Interventional'
+AND drks_study_type = 'Non-interventional'
+AND study_type_non_interventional = 'Other'
+AND observational_model != 'N/A'
+-- AND ctgov_purpose = 'Other'
+AND drks_purpose != 'Diagnostic'
+LIMIT 1
+```
+
+<div class="knitsql-table">
+
+| ctgov\_study\_type | drks\_study\_type  | study\_type\_non\_interventional | observational\_model | ctgov\_purpose | drks\_purpose |
+|:-------------------|:-------------------|:---------------------------------|:---------------------|:---------------|:--------------|
+| Observational      | Non-interventional | Other                            | Cohort               | NA             | Screening     |
+
+1 records
+
+</div>
