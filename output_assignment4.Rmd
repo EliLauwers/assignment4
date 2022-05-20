@@ -440,7 +440,16 @@ A very straightforward imputation method is called donor imputation. Suppose tha
 
 ## Workflow for this exercise
 
-For every row in the e
+For every row in the table:
+
+1. First created an SQL query with a `WHERE` and `AND` clauses to 'recreate' the row (e.g. `WHERE col_1 = row_att_1 AND col_2 = row_att_2 AND ..`)
+2. I chose a solution from the minimal set covers
+3. I negated the equality for the attribute(s) in the minimal set cover (Basically saying: "find a row where the minimal set attribute value is anything else than the current value)
+4. Upon to this point, the result of a query like that is a row where every minimal set attribute must be different than the current value, and the other attributes must be equal to the current values
+5. When I didn't find any rows, I commented out one equality (Basically saying "Every minimal set attribute must be different than the current value and at most one of the other attribute values can be different than the current value.")
+6. I commented out equalities iteratively until stumbling upon a query that resulted in at least one row.
+7. To check the resulting rows for the failing of edit rules, I used the SQL query as input for the java rulebox, and set the srf flag to 0 (Basically saying: "Return every row from the input sql query where no edit rules are failed".)
+8. The results are rows where (1) no edit rules are failed, (2) all values for the minimal set attributes are different than the original values and (3) At most one of the non-minimal set attributes is different from the original value. 
 
 ## Exercise 8.1
 
