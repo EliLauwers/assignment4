@@ -399,8 +399,11 @@ possible.
 edit rules E13 and E15, but no additional ones. If so, give such an
 example row. If not, explain why.
 
-**Answer**: `cst`: {Observational} x `dst`:{Non-Interventional} x
-`stni`:{N/A} x `om`: {N/A} x `cp`: {Prevention} x `dp`: {prevention}
+**Answer**: In table 1 there is no such row, as no rows fail rule E13.
+In theory however it is possible:
+
+`cst`: {Observational} x `dst`:{Non-Interventional} x `stni`:{N/A} x
+`om`: {N/A} x `cp`: {Prevention} x `dp`: {prevention}
 
 ## Exercise 4.4
 
@@ -779,7 +782,7 @@ said attribute.
 | E23  | \(12\) | E13 | E14 |        No         | {Observational, Observational \[Patient Registry} |   {Interventional}   |                       A\_stni                       |                                                                                                  |       |             |
 | E24  | \(12\) | E13 | E17 |        No         | {Observational, Observational \[Patient Registry} |                      |                       A\_stni                       |                                              {N/A}                                               |       |             |
 | E25  | \(12\) | E14 | E16 |        No         |                                                   |   {Interventional}   |                       A\_stni                       | {Case Control, Case Crossover, Case Only, Cohort, Ecologic or Community, Natural History, Other} |       |             |
-| E26  | \(12\) | E14 | E17 |        No         |                                                   |   {Interventional}   |                       A\_stni                       |                                              {N/A}                                               |       |             |
+| E26  | \(12\) | E15 | E17 |        No         |                                                   | {Non-Interventional} |                       A\_stni                       |                                              {N/A}                                               |       |             |
 
 ## Exercise 7.3
 
@@ -855,7 +858,28 @@ attribute is 1. Write your answer in the report.
 |           |                        |                                                                              | {`stni`, `dst`, `cp`} |
 |           |                        |                                                                              | {`stni`, `dst`, `dp`} |
 
-## Exercise 8
+# Exercise 8
+
+A very straightforward imputation method is called donor imputation.
+Suppose that a row r in a dataset fails some edit rules resulting in a
+minimal solution S. Donor imputation is going to search for a repair r 0
+(the donor) in the same dataset that (1) does not fail any edit rules,
+(2) has at least different values for the attributes in S compared to r
+and (3) has as many equal values for the other attributes compared to r
+(i.e. the donor row r 0 should be as closely as possible to the original
+row r ). Search, for each row given in Table 1, a donor row r 0 that
+exists in the purpose table of the clinicaltrials database. Therefore,
+consider one solution S for each failing row r (cfr. exercise 7.5) and
+make sure that r 0 has at most one different value for the attributes
+that are not in S compared to r . List, for each failing row, a
+potential donor row that meets the above requirements in your report. If
+no donor is found, mention this too. Write your answers in the report.
+
+## Workflow for this exercise
+
+For every row in the e
+
+## Exercise 8.1
 
 For row 1: *No row exists*. In the SQL query below, one can iteratively
 emit the next `AND` statement and it will not result in any rows,
@@ -863,7 +887,8 @@ meaning that there is no row that has another value for `cp` than
 ‘Treatment’ while all but at most one attributes keep their values.
 
 ``` sql
-SELECT * FROM purpose
+SELECT DISTINCT *
+FROM purpose
 WHERE ctgov_purpose != 'Treatment'
 -- AND ctgov_study_type = 'Observational' 
 AND drks_study_type = 'Non-interventional'
@@ -881,52 +906,152 @@ AND drks_purpose = 'Treament'
 
 </div>
 
+## Exercise 8.2
+
 For row 2: If we remove the restraint on `dp` taking on the value of
 ‘Treatment’, we can find some rows which change `om` to ‘N/A’
 
-``` sql
-SELECT * FROM purpose
-WHERE observational_model != 'Cohort'
-AND observational_model = 'N/A'
-AND ctgov_study_type = 'Interventional'
-AND drks_study_type = 'Interventional'
-AND study_type_non_interventional = 'N/A'
-AND ctgov_purpose = 'Treatment'
--- AND drks_purpose = 'Treament'
-LIMIT 1
+``` bash
+echo -e "SELECT DISTINCT * FROM purpose WHERE observational_model != 'Cohort'AND observational_model = 'N/A' AND ctgov_study_type = 'Interventional'AND drks_study_type = 'Interventional' AND study_type_non_interventional = 'N/A' AND ctgov_purpose = 'Treatment'-- AND drks_purpose = 'Treament" |
+java -jar rulebox.jar errors detect rows --d ctgov_drks.json --c edit_rules_sufficient.rbx --se --srf 0
 ```
 
-<div class="knitsql-table">
+    ## Reading constraints
+    ## Reading data...
+    ## SQL query:
+    ## {ctgov_purpose=Treatment,ctgov_study_type=Interventional,drks_purpose=null,drks_study_type=Interventional,observational_model=N/A,study_type_non_interventional=N/A}
+    ##   Failed sigma rules:
+    ## {ctgov_purpose=Treatment,ctgov_study_type=Interventional,drks_purpose=Prevention,drks_study_type=Interventional,observational_model=N/A,study_type_non_interventional=N/A}
+    ##   Failed sigma rules:
+    ##   ctgov_purpose in {'Screening','Treatment','Basic Science','Diagnostic','Supportive Care','Health Services Research','Other'} & drks_purpose in {'Prevention'}
+    ## {ctgov_purpose=Treatment,ctgov_study_type=Interventional,drks_purpose=Supportive care,drks_study_type=Interventional,observational_model=N/A,study_type_non_interventional=N/A}
+    ##   Failed sigma rules:
+    ##   drks_purpose in {'Supportive care'} & ctgov_purpose in {'Prevention','Screening','Treatment','Basic Science','Diagnostic','Health Services Research','Other'}
+    ## {ctgov_purpose=Treatment,ctgov_study_type=Interventional,drks_purpose=Other,drks_study_type=Interventional,observational_model=N/A,study_type_non_interventional=N/A}
+    ##   Failed sigma rules:
+    ##   ctgov_purpose in {'Prevention','Screening','Treatment','Basic Science','Diagnostic','Supportive Care','Health Services Research'} & drks_purpose in {'Other'}
+    ## {ctgov_purpose=Treatment,ctgov_study_type=Interventional,drks_purpose=Treatment,drks_study_type=Interventional,observational_model=N/A,study_type_non_interventional=N/A}
+    ##   Failed sigma rules:
+    ## 
+    ## Invalid rows (at least one error): 3
+    ## 
+    ## Histogram for sigma rule failures
+    ## 
+    ##  Bin 1: 0 -> 2
+    ##  Bin 2: 1 -> 3
+    ##  Bin 3: 2 -> 0
+    ##  Bin 4: 3 -> 0
+    ##  Bin 5: 4 -> 0
+    ##  Bin 6: 5 -> 0
+    ##  Bin 7: 6 -> 0
+    ##  Bin 8: 7 -> 0
+    ##  Bin 9: 8 -> 0
+    ##  Bin 10: 9 -> 0
+    ##  Bin 11: 10 -> 0
+    ##  Bin 12: 11 -> 0
+    ##  Bin 13: 12 -> 0
+    ##  Bin 14: 13 -> 0
+    ##  Bin 15: 14 -> 0
+    ##  Bin 16: 15 -> 0
+    ##  Bin 17: 16 -> 0
+    ##  Bin 18: 17 -> 0
+    ##  Bin 19: 18 -> 0
+    ##  Bin 20: 19 -> 0
+    ##  Bin 21: 20 -> 0
+    ##  Bin 22: 21 -> 0
+    ##  Bin 23: 22 -> 0
+    ##  Bin 24: 23 -> 0
+    ##  Bin 25: 24 -> 0
+    ##  Bin 26: 25 -> 0
+    ##  Bin 27: 26 -> 0
+    ##  Bin 28: 27 -> 0
+    ##  Bin 29: 28 -> 0
+    ##  Bin 30: 29 -> 0
+    ##  Bin 31: 30 -> 0
+    ##  Bin 32: 31 -> 0
+    ##  Bin 33: 32 -> 0
+    ##  Bin 34: 33 -> 0
+    ##  Bin 35: 34 -> 0
+    ##  Bin 36: 35 -> 0
 
-| ctgov\_study\_type | drks\_study\_type | study\_type\_non\_interventional | observational\_model | ctgov\_purpose | drks\_purpose |
-|:-------------------|:------------------|:---------------------------------|:---------------------|:---------------|:--------------|
-| Interventional     | Interventional    | N/A                              | N/A                  | Treatment      | Treatment     |
-
-1 records
-
-</div>
+## Exercise 8.3
 
 For row 3: No action is needed as this row does not fail any rules.
 
+## Exercise 8.4
+
 For row 4:
 
-``` sql
-SELECT * FROM purpose
-WHERE ctgov_study_type != 'Interventional'
-AND drks_study_type = 'Non-interventional'
-AND study_type_non_interventional = 'Other'
-AND observational_model != 'N/A'
--- AND ctgov_purpose = 'Other'
-AND drks_purpose != 'Diagnostic'
-LIMIT 1
+``` bash
+echo -e "SELECT DISTINCT * FROM purpose WHERE ctgov_study_type != 'Interventional' AND drks_study_type = 'Non-interventional' AND study_type_non_interventional = 'Other' AND observational_model != 'N/A' -- AND ctgov_purpose = 'Other' AND drks_purpose != 'Diagnostic'" | 
+java -jar rulebox.jar errors detect rows --d ctgov_drks.json --c edit_rules_sufficient.rbx --se --srf 0
 ```
 
-<div class="knitsql-table">
-
-| ctgov\_study\_type | drks\_study\_type  | study\_type\_non\_interventional | observational\_model | ctgov\_purpose | drks\_purpose |
-|:-------------------|:-------------------|:---------------------------------|:---------------------|:---------------|:--------------|
-| Observational      | Non-interventional | Other                            | Cohort               | NA             | Screening     |
-
-1 records
-
-</div>
+    ## Reading constraints
+    ## Reading data...
+    ## SQL query:
+    ## {ctgov_purpose=null,ctgov_study_type=Observational,drks_purpose=Other,drks_study_type=Non-interventional,observational_model=Case Control,study_type_non_interventional=Other}
+    ##   Failed sigma rules:
+    ## {ctgov_purpose=null,ctgov_study_type=Observational,drks_purpose=Diagnostic,drks_study_type=Non-interventional,observational_model=Case Only,study_type_non_interventional=Other}
+    ##   Failed sigma rules:
+    ## {ctgov_purpose=null,ctgov_study_type=Observational,drks_purpose=Diagnostic,drks_study_type=Non-interventional,observational_model=Cohort,study_type_non_interventional=Other}
+    ##   Failed sigma rules:
+    ## {ctgov_purpose=null,ctgov_study_type=Observational,drks_purpose=Other,drks_study_type=Non-interventional,observational_model=Cohort,study_type_non_interventional=Other}
+    ##   Failed sigma rules:
+    ## {ctgov_purpose=null,ctgov_study_type=Observational,drks_purpose=Prognosis,drks_study_type=Non-interventional,observational_model=Cohort,study_type_non_interventional=Other}
+    ##   Failed sigma rules:
+    ## {ctgov_purpose=null,ctgov_study_type=Observational,drks_purpose=Screening,drks_study_type=Non-interventional,observational_model=Cohort,study_type_non_interventional=Other}
+    ##   Failed sigma rules:
+    ## {ctgov_purpose=null,ctgov_study_type=Observational,drks_purpose=Treatment,drks_study_type=Non-interventional,observational_model=Cohort,study_type_non_interventional=Other}
+    ##   Failed sigma rules:
+    ##   drks_purpose in {'Treatment'} & study_type_non_interventional in {'Observational study','Epidemiological study','Other'}
+    ##   ctgov_study_type in {'Observational [Patient Registry]','Observational'} & drks_purpose in {'Treatment'}
+    ##   drks_study_type in {'Non-interventional'} & drks_purpose in {'Treatment'}
+    ##   observational_model in {'Case Control','Cohort','Ecologic or Community','Case Crossover','Case Only','Natural History','Other'} & drks_purpose in {'Treatment'}
+    ## {ctgov_purpose=null,ctgov_study_type=Observational,drks_purpose=Diagnostic,drks_study_type=Non-interventional,observational_model=Other,study_type_non_interventional=Other}
+    ##   Failed sigma rules:
+    ## {ctgov_purpose=null,ctgov_study_type=Observational [Patient Registry],drks_purpose=Basic research/physiological study,drks_study_type=Non-interventional,observational_model=Cohort,study_type_non_interventional=Other}
+    ##   Failed sigma rules:
+    ## {ctgov_purpose=null,ctgov_study_type=Observational [Patient Registry],drks_purpose=Diagnostic,drks_study_type=Non-interventional,observational_model=Cohort,study_type_non_interventional=Other}
+    ##   Failed sigma rules:
+    ## 
+    ## Invalid rows (at least one error): 1
+    ## 
+    ## Histogram for sigma rule failures
+    ## 
+    ##  Bin 1: 0 -> 9
+    ##  Bin 2: 1 -> 0
+    ##  Bin 3: 2 -> 0
+    ##  Bin 4: 3 -> 0
+    ##  Bin 5: 4 -> 1
+    ##  Bin 6: 5 -> 0
+    ##  Bin 7: 6 -> 0
+    ##  Bin 8: 7 -> 0
+    ##  Bin 9: 8 -> 0
+    ##  Bin 10: 9 -> 0
+    ##  Bin 11: 10 -> 0
+    ##  Bin 12: 11 -> 0
+    ##  Bin 13: 12 -> 0
+    ##  Bin 14: 13 -> 0
+    ##  Bin 15: 14 -> 0
+    ##  Bin 16: 15 -> 0
+    ##  Bin 17: 16 -> 0
+    ##  Bin 18: 17 -> 0
+    ##  Bin 19: 18 -> 0
+    ##  Bin 20: 19 -> 0
+    ##  Bin 21: 20 -> 0
+    ##  Bin 22: 21 -> 0
+    ##  Bin 23: 22 -> 0
+    ##  Bin 24: 23 -> 0
+    ##  Bin 25: 24 -> 0
+    ##  Bin 26: 25 -> 0
+    ##  Bin 27: 26 -> 0
+    ##  Bin 28: 27 -> 0
+    ##  Bin 29: 28 -> 0
+    ##  Bin 30: 29 -> 0
+    ##  Bin 31: 30 -> 0
+    ##  Bin 32: 31 -> 0
+    ##  Bin 33: 32 -> 0
+    ##  Bin 34: 33 -> 0
+    ##  Bin 35: 34 -> 0
+    ##  Bin 36: 35 -> 0

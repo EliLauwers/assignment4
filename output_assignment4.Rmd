@@ -192,7 +192,9 @@ Provide solutions to the following error detection exercises related to the exam
 
 **Assignment**: Is it possible to give an example row that fails both edit rules E13 and E15, but no additional ones. If so, give such an example row. If not, explain why.
 
-**Answer**: `cst`: {Observational} x `dst`:{Non-Interventional} x `stni`:{N/A} x `om`: {N/A} x `cp`: {Prevention} x `dp`: {prevention}
+**Answer**: In table 1 there is no such row, as no rows fail rule E13. In theory however it is possible:
+
+`cst`: {Observational} x `dst`:{Non-Interventional} x `stni`:{N/A} x `om`: {N/A} x `cp`: {Prevention} x `dp`: {prevention}
 
 
 ## Exercise 4.4
@@ -380,7 +382,7 @@ Empty attribute cells in the table below indicate attributes that are not involv
 |  E23 | (12) | E13 | E14 |         No        | {Observational, Observational [Patient Registry} |   {Interventional}   |                        A_stni                       |                                                                                                  |      |             |
 |  E24 | (12) | E13 | E17 |         No        | {Observational, Observational [Patient Registry} |                      |                        A_stni                       |                                               {N/A}                                              |      |             |
 |  E25 | (12) | E14 | E16 |         No        |                                                  |   {Interventional}   |                        A_stni                       | {Case Control, Case Crossover, Case Only, Cohort, Ecologic or Community, Natural History, Other} |      |             |
-|  E26 | (12) | E14 | E17 |         No        |                                                  |   {Interventional}   |                        A_stni                       |                                               {N/A}                                              |      |             |
+|  E26 | (12) | E15 | E17 |         No        |                                                  | {Non-Interventional} |                        A_stni                       |                                               {N/A}                                              |      |             |
 
 
 
@@ -432,12 +434,21 @@ java -jar rulebox.jar reason fcf --c edit_rules.rbx --of edit_rules_sufficient.r
 |           |                       |                                                                            | {`stni`, `dst`, `dp`}|
 
 
-## Exercise 8
+# Exercise 8
+
+A very straightforward imputation method is called donor imputation. Suppose that a row r in a dataset fails some edit rules resulting in a minimal solution S. Donor imputation is going to search for a repair r 0 (the donor) in the same dataset that (1) does not fail any edit rules, (2) has at least different values for the attributes in S compared to r and (3) has as many equal values for the other attributes compared to r (i.e. the donor row r 0 should be as closely as possible to the original row r ). Search, for each row given in Table 1, a donor row r 0 that exists in the purpose table of the clinicaltrials database. Therefore, consider one solution S for each failing row r (cfr. exercise 7.5) and make sure that r 0 has at most one different value for the attributes that are not in S compared to r . List, for each failing row, a potential donor row that meets the above requirements in your report. If no donor is found, mention this too. Write your answers in the report.
+
+## Workflow for this exercise
+
+For every row in the e
+
+## Exercise 8.1
 
 For row 1: *No row exists*. In the SQL query below, one can iteratively emit the next `AND` statement and it will not result in any rows, meaning that there is no row that has another value for `cp` than 'Treatment' while all but at most one attributes keep their values.
 
 ```{sql connection=con}
-SELECT * FROM purpose
+SELECT DISTINCT *
+FROM purpose
 WHERE ctgov_purpose != 'Treatment'
 -- AND ctgov_study_type = 'Observational' 
 AND drks_study_type = 'Non-interventional'
@@ -445,33 +456,25 @@ AND study_type_non_interventional = 'Epidemiological study'
 AND observational_model = 'Case Crossover'
 AND drks_purpose = 'Treament'
 ```
+## Exercise 8.2
 
 For row 2: If we remove the restraint on `dp` taking on the value of 'Treatment', we can find some rows which change `om` to 'N/A'
 
-```{sql connection=con}
-SELECT * FROM purpose
-WHERE observational_model != 'Cohort'
-AND observational_model = 'N/A'
-AND ctgov_study_type = 'Interventional'
-AND drks_study_type = 'Interventional'
-AND study_type_non_interventional = 'N/A'
-AND ctgov_purpose = 'Treatment'
--- AND drks_purpose = 'Treament'
-LIMIT 1
+```{bash}
+echo -e "SELECT DISTINCT * FROM purpose WHERE observational_model != 'Cohort'AND observational_model = 'N/A' AND ctgov_study_type = 'Interventional'AND drks_study_type = 'Interventional' AND study_type_non_interventional = 'N/A' AND ctgov_purpose = 'Treatment'-- AND drks_purpose = 'Treament" |
+java -jar rulebox.jar errors detect rows --d ctgov_drks.json --c edit_rules_sufficient.rbx --se --srf 0
 ```
+
+
+## Exercise 8.3
 
 For row 3: No action is needed as this row does not fail any rules.
 
+## Exercise 8.4
+
 For row 4: 
 
-```{sql connection=con}
-SELECT * FROM purpose
-WHERE ctgov_study_type != 'Interventional'
-AND drks_study_type = 'Non-interventional'
-AND study_type_non_interventional = 'Other'
-AND observational_model != 'N/A'
--- AND ctgov_purpose = 'Other'
-AND drks_purpose != 'Diagnostic'
-LIMIT 1
+```{bash}
+echo -e "SELECT DISTINCT * FROM purpose WHERE ctgov_study_type != 'Interventional' AND drks_study_type = 'Non-interventional' AND study_type_non_interventional = 'Other' AND observational_model != 'N/A' -- AND ctgov_purpose = 'Other' AND drks_purpose != 'Diagnostic'" | 
+java -jar rulebox.jar errors detect rows --d ctgov_drks.json --c edit_rules_sufficient.rbx --se --srf 0
 ```
-
